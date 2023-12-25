@@ -1,0 +1,103 @@
+{{ $repoName := .Files.Get (printf "%s/%s" .Values.imagedir .Values.imageRepo ) | trim }}
+{{ $tagName := .Files.Get (printf "%s/%s" .Values.imagedir .Values.imageTag ) | trim }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    tier: airflow
+data:
+  airflow.cfg: |-
+
+    [celery_kubernetes_executor]
+    kubernetes_queue = kubernetes
+    
+    [core]
+    colored_console_log = False
+    dags_folder = /opt/airflow/dags
+    executor = KubernetesExecutor
+    load_examples = False
+    remote_logging = False
+
+    [kubernetes]
+    airflow_configmap = airflow-config
+    airflow_local_settings_configmap = airflow-config
+    multi_namespace_mode = False
+    namespace = {{ .Values.namespace }}
+    pod_template_file = /opt/airflow/pod_templates/pod_template_file.yaml
+    worker_container_repository = apache/airflow
+    worker_container_tag = 2.7.1
+    
+    [kubernetes_executor]
+    multi_namespace_mode = False
+    namespace = {{ .Values.namespace }}
+    pod_template_file = /opt/airflow/pod_templates/pod_template_file.yaml
+    worker_container_repository = apache/airflow
+    worker_container_tag = 2.7.1
+
+    [scheduler]
+    run_duration = 41460
+
+    [webserver]
+    enable_proxy_fix = True
+    rbac = True
+
+  pod_template_file.yaml: |-
+    
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: placeholder-name
+      namespace: {{ .Values.namespace }}
+      labels:
+        tier: airflow
+    spec:
+      containers:
+          env:
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-metadata
+                  key: connection
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-metadata
+                  key: connection
+            - name: AIRFLOW_CONN_AIRFLOW_DB
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-metadata
+                  key: connection
+            # - name: AIRFLOW__WEBSERVER__SECRET_KEY   #### should be used for replicas 2 and more
+            #   valueFrom:                             #### store state in database and this secret provide get more replicas
+            #     secretKeyRef:
+            #       name: airflow-webserver-secret-key
+            #       key: webserver-secret-key
+          image: {{ printf "%s/%s" $repoName $tagName | trim | default "ass:$300-bucks" }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          name: base
+          resources:
+            {}
+          volumeMounts:
+            - name: config
+              mountPath: "/opt/airflow/airflow.cfg"
+              subPath: airflow.cfg
+              readOnly: true
+      restartPolicy: Never
+      securityContext: 
+        runAsUser: 50000
+        fsGroup: 0
+      terminationGracePeriodSeconds: 600
+      serviceAccountName: airflow-scheduler
+      volumes:
+      - name: config
+          configMap:
+            name: airflow-config

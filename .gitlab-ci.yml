@@ -1,0 +1,100 @@
+stages:
+  - build-dc
+  - build-gcp
+  - deploy-dc
+  - deploy-gcp
+
+build_dc:
+  stage: build-dc
+  script:
+    - ./build/scripts/docker-check-space.sh
+    - ./build/scripts/build-dc.sh $CI_COMMIT_SHORT_SHA
+    - ./build/scripts/commit-image.sh $CI_COMMIT_SHORT_SHA
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /.*requirement.*/'
+  tags:
+    - office
+  artifacts:
+    paths:
+      - deploy/images/airflow-image
+
+build_gcp:
+  stage: build-gcp
+  script:
+    - ./build/scripts/docker-check-space.sh
+    - ./build/scripts/build-gcp.sh $CI_COMMIT_SHORT_SHA
+  rules:
+    - if: '$CI_COMMIT_MESSAGE =~ /.*requirement.*/'
+  tags:
+    - wow-develop
+  artifacts:
+    paths:
+      - deploy/images/airflow-image
+
+
+
+deploy_loto_preprod:
+  stage: deploy-dc
+  script:
+    - helm template -f deploy/project/Chart-loto-preprod.yaml deploy/
+    - export  KUBECONFIG=~/.kube/loto-preprod
+    - kubectl get no
+   #- helm upgrade --install airflow -n lottery -f deploy/project/Chart-loto-preprod.yaml  deploy/
+  when: manual
+  tags:
+    - office
+
+deploy_loto_prod:
+  stage: deploy-dc
+  script:
+    - helm template -f deploy/project/Chart-loto-prod.yaml deploy/
+    #- export  KUBECONFIG=~/.kube/loto-prod
+    #- kubectl get no
+    #- helm upgrade --install airflow -n lottery -f deploy/project/Chart-loto-prod.yaml  deploy/
+  when: manual
+  tags:
+    - office
+
+deploy_lottery_qa:
+  stage: deploy-gcp
+  script:
+    - helm template -f deploy/project/Chart-lottery-qa.yaml deploy/
+    - gcloud container clusters get-credentials lottery-qa-gke --region europe-west1 --project lottery-qa
+    - kubectl get no
+    #- helm upgrade --install airflow -n default -f deploy/project/Chart-lottery-qa.yaml  deploy/
+  when: manual
+  tags:
+    - wow-develop
+
+deploy_lottery_bb_test:
+  stage: deploy-gcp
+  script:
+    - helm template -f deploy/project/Chart-lottery-bb-test.yaml deploy/
+    - gcloud container clusters get-credentials lottery-bb-test-gke --region europe-west1 --project lottery-bb-test
+    - kubectl get no
+    #- helm upgrade --install airflow -n default -f deploy/project/Chart-lottery-bb-test.yaml  deploy/
+  when: manual
+  tags:
+    - wow-develop
+
+deploy_lottery_develop:
+  stage: deploy-gcp
+  script:
+    - helm template -f deploy/project/Chart-lottery-develop.yaml deploy/
+    - gcloud container clusters get-credentials lottery-develop-gke --region europe-west1 --project lottery-develop
+    - kubectl get no
+    #- helm upgrade --install airflow -n default -f deploy/project/Chart-lottery-develop.yaml deploy/
+  when: manual
+  tags:
+    - wow-develop
+
+deploy_loto_marketing:
+  stage: deploy-gcp
+  script:
+    - helm template -f deploy/project/Chart-loto-marketing.yaml deploy/
+    - gcloud container clusters get-credentials loto-marketing-gke --region europe-west1 --project loto-marketing
+    - kubectl get no
+    #- helm upgrade --install airflow -n default -f deploy/project/Chart-loto-marketing.yaml deploy/
+  when: manual
+  tags:
+    - wow-develop

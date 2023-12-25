@@ -1,0 +1,11 @@
+namespace: default
+imageRepo: defaultName
+imageTag: airflow-image
+imagedir: images
+#### base64 jdbc
+database_connect: "bXktZW5jb2RlZC1qZGJj"
+
+
+customConfig:
+  # - dawd 
+  # - dawdda

@@ -1,0 +1,73 @@
+{{ $repoName := .Files.Get (printf "%s/%s" .Values.imagedir .Values.imageRepo ) | trim }}
+{{ $tagName := .Files.Get (printf "%s/%s" .Values.imagedir .Values.imageTag ) | trim }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: run-airflow-migrations
+  namespace: {{ .Values.namespace }}
+  labels:
+    tier: airflow
+    component: airflow-migrations
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "1"
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        tier: airflow
+        component: airflow-migrations
+    spec:
+      securityContext: 
+        runAsUser: 50000
+        fsGroup: 0
+      restartPolicy: OnFailure
+      containers:
+        - name: run-airflow-migrations
+          image: {{ printf "%s/%s" $repoName $tagName | trim | default "ass:$300-bucks" }}
+          imagePullPolicy: IfNotPresent
+          securityContext: 
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          args:
+            - bash
+            - -c
+            - |-
+              exec \
+              airflow db migrate
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-metadata
+                  key: connection
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-metadata
+                  key: connection
+            - name: AIRFLOW_CONN_AIRFLOW_DB
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-metadata
+                  key: connection
+            # - name: AIRFLOW__WEBSERVER__SECRET_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: release-name-webserver-secret-key
+            #       key: webserver-secret-key
+          volumeMounts:
+            - name: config
+              mountPath: "/opt/airflow/airflow.cfg"
+              subPath: airflow.cfg
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: airflow-config

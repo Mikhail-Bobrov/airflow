@@ -1,0 +1,9 @@
+namespace: default
+
+database_connect: "dawdawdaw" ## base64
+imageRepo: loto-marketing
+
+# customConfig:
+#   - dawdawdawd
+#   - dadwaw
+# or use func 'to yaml' and just add configa

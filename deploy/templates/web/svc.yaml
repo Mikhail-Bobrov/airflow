@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver
+  namespace: {{ .Values.namespace }}
+  labels:
+    tier: airflow
+spec:
+  type: ClusterIP
+  selector:
+    tier: airflow
+    component: webserver
+  ports:
+    - name: airflow-ui
+      port: 8080
