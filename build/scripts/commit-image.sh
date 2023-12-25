@@ -2,7 +2,7 @@
 
 set -e
 
-GIT_URL=git@git.ridotto.by:infra/airflow-k8s.git
+GIT_URL=your_repo_url
 SHORTSHA=$1
 AirflowVersion=2.7.1
 
