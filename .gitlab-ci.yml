@@ -26,7 +26,7 @@ build_gcp:
   rules:
     - if: '$CI_COMMIT_MESSAGE =~ /.*requirement.*/'
   tags:
-    - wow-develop
+    - runner-tag
   artifacts:
     paths:
       - deploy/images/airflow-image
@@ -36,10 +36,10 @@ build_gcp:
 deploy_loto_preprod:
   stage: deploy-dc
   script:
-    - helm template -f deploy/project/Chart-loto-preprod.yaml deploy/
-    - export  KUBECONFIG=~/.kube/loto-preprod
+    - helm template -f deploy/project/Chart-project1.yaml deploy/
+    - export  KUBECONFIG=~/.kube/config-project1
     - kubectl get no
-   #- helm upgrade --install airflow -n lottery -f deploy/project/Chart-loto-preprod.yaml  deploy/
+   #- helm upgrade --install airflow -n lottery -f deploy/project/Chart-project1.yaml  deploy/
   when: manual
   tags:
     - office
@@ -47,10 +47,10 @@ deploy_loto_preprod:
 deploy_loto_prod:
   stage: deploy-dc
   script:
-    - helm template -f deploy/project/Chart-loto-prod.yaml deploy/
-    #- export  KUBECONFIG=~/.kube/loto-prod
+    - helm template -f deploy/project/Chart-projec5.yaml deploy/
+    #- export  KUBECONFIG=~/.kube/project5
     #- kubectl get no
-    #- helm upgrade --install airflow -n lottery -f deploy/project/Chart-loto-prod.yaml  deploy/
+    #- helm upgrade --install airflow -n lottery -f deploy/project/Chart-project5.yaml  deploy/
   when: manual
   tags:
     - office
@@ -59,42 +59,9 @@ deploy_lottery_qa:
   stage: deploy-gcp
   script:
     - helm template -f deploy/project/Chart-lottery-qa.yaml deploy/
-    - gcloud container clusters get-credentials lottery-qa-gke --region europe-west1 --project lottery-qa
+    - gcloud container clusters get-credentials project3 --region europe-west1 --project project3
     - kubectl get no
-    #- helm upgrade --install airflow -n default -f deploy/project/Chart-lottery-qa.yaml  deploy/
+    #- helm upgrade --install airflow -n default -f deploy/project/Chart-project3.yaml  deploy/
   when: manual
   tags:
-    - wow-develop
-
-deploy_lottery_bb_test:
-  stage: deploy-gcp
-  script:
-    - helm template -f deploy/project/Chart-lottery-bb-test.yaml deploy/
-    - gcloud container clusters get-credentials lottery-bb-test-gke --region europe-west1 --project lottery-bb-test
-    - kubectl get no
-    #- helm upgrade --install airflow -n default -f deploy/project/Chart-lottery-bb-test.yaml  deploy/
-  when: manual
-  tags:
-    - wow-develop
-
-deploy_lottery_develop:
-  stage: deploy-gcp
-  script:
-    - helm template -f deploy/project/Chart-lottery-develop.yaml deploy/
-    - gcloud container clusters get-credentials lottery-develop-gke --region europe-west1 --project lottery-develop
-    - kubectl get no
-    #- helm upgrade --install airflow -n default -f deploy/project/Chart-lottery-develop.yaml deploy/
-  when: manual
-  tags:
-    - wow-develop
-
-deploy_loto_marketing:
-  stage: deploy-gcp
-  script:
-    - helm template -f deploy/project/Chart-loto-marketing.yaml deploy/
-    - gcloud container clusters get-credentials loto-marketing-gke --region europe-west1 --project loto-marketing
-    - kubectl get no
-    #- helm upgrade --install airflow -n default -f deploy/project/Chart-loto-marketing.yaml deploy/
-  when: manual
-  tags:
-    - wow-develop
+    - runner-tag

@@ -1,7 +1,7 @@
-namespace: default
+namespace: lottery
 
 database_connect: "dawdawdaw"
-imageRepo: lottery-develop
+imageRepo: airflow-image
 
 # customConfig:
 #   - dawdawdawd

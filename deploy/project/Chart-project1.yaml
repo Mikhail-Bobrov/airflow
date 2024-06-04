@@ -1,7 +1,7 @@
 namespace: default
 
 database_connect: "dawdawdaw" ## base64
-imageRepo: loto-marketing
+imageRepo: airflow-image
 
 # customConfig:
 #   - dawdawdawd
