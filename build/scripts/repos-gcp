@@ -1,4 +1,4 @@
-eu.gcr.io/lottery-bb-test
-eu.gcr.io/lottery-qa
-eu.gcr.io/lottery-develop
-eu.gcr.io/loto-marketing
+eu.gcr.io/airflow1
+eu.gcr.io/airflow-dev
+eu.gcr.io/airflow-stage
+eu.gcr.io/airflow-prod

@@ -1,2 +1,2 @@
-registry.preprod.kipod/belbet
-registry.prod.loto/infra
+registry.test2/airflow2
+registry.test/airflow
